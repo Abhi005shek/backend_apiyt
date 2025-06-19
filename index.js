@@ -8,9 +8,6 @@ const {
   downloadAudio,
   downloadThumbnail,
 } = require("./controller");
-
-const fs = require("fs");
-const path = require("path");
 const cors = require("cors");
 
 config();
