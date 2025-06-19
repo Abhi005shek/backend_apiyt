@@ -1,5 +1,7 @@
 const express = require("express");
 const { config } = require("dotenv");
+const path = require("path");
+const fs = require("fs");
 const {
   info,
   downloadVideo,
@@ -7,19 +9,29 @@ const {
   downloadThumbnail,
 } = require("./controller");
 
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
+
 config();
 
-console.log(process.env.PORT);
-const app = express();
-const PORT = 5000;
+// Ensure "downloads" directory exists
+const downloadDir = path.join(__dirname, "downloads");
+if (!fs.existsSync(downloadDir)) {
+  fs.mkdirSync(downloadDir);
+}
 
+const PORT = process.env.PORT || 5000;
+const app = express();
+
+app.use(cors());
 app.get("/info", info);
 app.get("/download", downloadVideo);
 app.get("/audio", downloadAudio);
 app.get("/thumbnail", downloadThumbnail);
 
-app.listen(PORT || 5000, () => {
-  console.log(`Server is running at http://localhost:${PORT || 5000}`);
+app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
 
 process.on("unhandledRejection", (err) => {

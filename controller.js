@@ -1,9 +1,12 @@
 const { exec } = require("child_process");
 const path = require("path");
-const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+// const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const https = require("https");
+
+const ffmpegPath = "/usr/bin/ffmpeg";
+const ytdlpPath = "/usr/local/bin/yt-dlp";
 
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9_\-\.]/gi, "_");
@@ -14,7 +17,8 @@ exports.info = (req, res) => {
   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
   //   const command = `yt-dlp -F "${videoURL}" --print-json`;
-  const command = `yt-dlp --dump-json "${videoURL}"`;
+  // const command = `yt-dlp --dump-json "${videoURL}"`;
+  const command = `${ytdlpPath} --dump-json "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
@@ -70,7 +74,8 @@ exports.downloadVideo = (req, res) => {
   title = sanitizeFilename(title);
   const output = path.join(__dirname, "downloads", `${title}.mp4`);
 
-  const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+  // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
   exec(command, (error, stdout, stderr) => {
     console.log("STDOUT:", stdout);
     console.error("STDERR:", stderr);
@@ -113,7 +118,8 @@ exports.downloadAudio = (req, res) => {
   }
 
   // Step 2: Run yt-dlp to extract and convert to mp3
-  const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
+  // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
+  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
@@ -134,7 +140,8 @@ exports.downloadThumbnail = (req, res) => {
   const videoURL = req.query.url;
   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
-  const command = `yt-dlp --print "%(thumbnail)s" "${videoURL}"`;
+  // const command = `yt-dlp --print "%(thumbnail)s" "${videoURL}"`;
+  const command = `${ytdlpPath} --print "%(thumbnail)s" "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
