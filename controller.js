@@ -9,7 +9,6 @@ const ffmpegPath = "/usr/bin/ffmpeg";
 // const ytdlpPath = "/usr/local/bin/yt-dlp";
 const ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
 
-
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9_\-\.]/gi, "_");
 }
@@ -20,7 +19,7 @@ exports.info = (req, res) => {
 
   //   const command = `yt-dlp -F "${videoURL}" --print-json`;
   // const command = `yt-dlp --dump-json "${videoURL}"`;
-  const command = `${ytdlpPath} --dump-json "${videoURL}"`;
+  const command = `${ytdlpPath} --cookies ./cookies/yt.txt --dump-json "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
@@ -77,7 +76,7 @@ exports.downloadVideo = (req, res) => {
   const output = path.join(__dirname, "downloads", `${title}.mp4`);
 
   // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
-  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./cookies/yt.txt -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
   exec(command, (error, stdout, stderr) => {
     console.log("STDOUT:", stdout);
     console.error("STDERR:", stderr);
@@ -121,7 +120,7 @@ exports.downloadAudio = (req, res) => {
 
   // Step 2: Run yt-dlp to extract and convert to mp3
   // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
-  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
+  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./cookies/yt.txt -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
@@ -143,7 +142,7 @@ exports.downloadThumbnail = (req, res) => {
   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
   // const command = `yt-dlp --print "%(thumbnail)s" "${videoURL}"`;
-  const command = `${ytdlpPath} --print "%(thumbnail)s" "${videoURL}"`;
+  const command = `${ytdlpPath} --cookies ./cookies/yt.txt --print "%(thumbnail)s" "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
