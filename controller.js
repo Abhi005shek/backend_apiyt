@@ -141,7 +141,6 @@ exports.downloadThumbnail = (req, res) => {
   const videoURL = req.query.url;
   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
-  // const command = `yt-dlp --print "%(thumbnail)s" "${videoURL}"`;
   const command = `${ytdlpPath} --cookies ./yt.txt --print "%(thumbnail)s" "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
@@ -156,15 +155,15 @@ exports.downloadThumbnail = (req, res) => {
     const filename = `thumb_${uuidv4()}${ext}`;
     const filePath = path.join(__dirname, "..", "downloads", filename);
 
+    // ✅ Ensure the directory exists
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
     const file = fs.createWriteStream(filePath);
 
     https
       .get(thumbnailURL, (response) => {
         if (response.statusCode !== 200) {
-          console.error(
-            "Failed to download image, status code:",
-            response.statusCode
-          );
+          console.error("Failed to download image:", response.statusCode);
           return res.status(500).send("Thumbnail fetch failed");
         }
 
@@ -173,7 +172,7 @@ exports.downloadThumbnail = (req, res) => {
         file.on("finish", () => {
           file.close(() => {
             res.download(filePath, filename, () => {
-              fs.unlink(filePath, () => {}); // optional cleanup
+              fs.unlink(filePath, () => {}); // cleanup
             });
           });
         });
