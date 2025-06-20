@@ -9,6 +9,7 @@ const {
   downloadThumbnail,
 } = require("./controller");
 const cors = require("cors");
+const ratelimit = require("express");
 
 config();
 
@@ -21,11 +22,22 @@ if (!fs.existsSync(downloadDir)) {
 const PORT = process.env.PORT || 5000;
 const app = express();
 
+const infoRateLimiter = ratelimit({
+  windowMs: 1 * 60 * 1000,
+  max: 10,
+  message: "Too many request wait for ~1 minute.",
+});
+const downloadRateLimiter = ratelimit({
+  windowMs: 10 * 60 * 1000,
+  max: 4,
+  message: "Too many download requests. Try again later after ~10 minutes.",
+});
+
 app.use(cors());
-app.get("/info", info);
-app.get("/download", downloadVideo);
-app.get("/audio", downloadAudio);
-app.get("/thumbnail", downloadThumbnail);
+app.get("/info", infoRateLimiter, info);
+app.get("/download", downloadRateLimiter, downloadVideo);
+app.get("/audio", downloadRateLimiter, downloadAudio);
+app.get("/thumbnail", infoRateLimiter, downloadThumbnail);
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
