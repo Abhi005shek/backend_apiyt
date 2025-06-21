@@ -23,43 +23,49 @@ exports.downloadMVideo = (req, res) => {
   if (!videoURL || !formatId) {
     return res.status(400).send("Missing url or format_id parameter");
   }
+  try {
+    //   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
-  //   if (!videoURL) return res.status(400).send("Missing URL parameter");
+    const id = uuidv4(); // unique ID for each download
 
-  const id = uuidv4(); // unique ID for each download
+    //   const output = path.join(__dirname, "downloads", `${id}.mp4`);
+    //   const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
 
-  //   const output = path.join(__dirname, "downloads", `${id}.mp4`);
-  //   const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+    title = sanitizeFilename(title);
+    const output = path.join(__dirname, "downloads", `${title}.mp4`);
 
-  title = sanitizeFilename(title);
-  const output = path.join(__dirname, "downloads", `${title}.mp4`);
+    // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+    const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+    exec(command, (error, stdout, stderr) => {
+      console.log("STDOUT:", stdout);
+      console.error("STDERR:", stderr);
+      if (error) {
+        console.error("Error:", error);
+        return res.status(500).send("Download failed");
+      }
 
-  // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
-  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
-  exec(command, (error, stdout, stderr) => {
-    console.log("STDOUT:", stdout);
-    console.error("STDERR:", stderr);
-    if (error) {
-      console.error("Error:", error);
-      return res.status(500).send("Download failed");
-    }
+      res.setHeader("Content-Type", "video/mp4");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${title}.mp4"`
+      );
+      const readStream = fs.createReadStream(output);
+      readStream.pipe(res);
+      readStream.on("close", () => {
+        // Cleanup after sending
+        fs.unlink(output, (err) => {
+          if (err) console.error("Cleanup error:", err);
+        });
+      });
 
-    res.setHeader("Content-Type", "video/mp4");
-    res.setHeader("Content-Disposition", `attachment; filename="${title}.mp4"`);
-    const readStream = fs.createReadStream(output);
-    readStream.pipe(res);
-    readStream.on("close", () => {
-      // Cleanup after sending
-      fs.unlink(output, (err) => {
-        if (err) console.error("Cleanup error:", err);
+      readStream.on("error", (err) => {
+        console.error("Streaming error:", err);
+        res.status(500).send("Failed to stream video");
       });
     });
-
-    readStream.on("error", (err) => {
-      console.error("Streaming error:", err);
-      res.status(500).send("Failed to stream video");
-    });
-  });
+  } catch (error) {
+    console.log("Error💥", error);
+  }
 };
 
 //
@@ -70,46 +76,55 @@ exports.downloadMAudio = (req, res) => {
 
   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
-  title = sanitizeFilename(title);
-  const outputPath = path.join(
-    __dirname,
-    "..",
-    "downloads",
-    `${title}.%(ext)s`
-  );
-  const mp3Path = outputPath.replace("%(ext)s", "mp3");
+  try {
+    console.log("/v2/audio accessed");
 
-  // Step 1: If previous file exists, delete it
-  if (fs.existsSync(mp3Path)) {
-    fs.unlinkSync(mp3Path);
-  }
+    title = sanitizeFilename(title);
+    const outputPath = path.join(
+      __dirname,
+      "..",
+      "downloads",
+      `${title}.%(ext)s`
+    );
+    const mp3Path = outputPath.replace("%(ext)s", "mp3");
 
-  // Step 2: Run yt-dlp to extract and convert to mp3
-  // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
-  const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
-
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error("Error:", error);
-      return res.status(500).send("Download failed");
+    // Step 1: If previous file exists, delete it
+    if (fs.existsSync(mp3Path)) {
+      fs.unlinkSync(mp3Path);
     }
 
-    res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Content-Disposition", `attachment; filename="${title}.mp3"`);
-    const readStream = fs.createReadStream(mp3Path);
-    readStream.pipe(res);
-    readStream.on("close", () => {
-      // Cleanup after sending
-      fs.unlink(mp3Path, (err) => {
-        if (err) console.error("Cleanup error:", err);
+    // Step 2: Run yt-dlp to extract and convert to mp3
+    // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
+    const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
+
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error("Error:", error);
+        return res.status(500).send("Download failed");
+      }
+
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${title}.mp3"`
+      );
+      const readStream = fs.createReadStream(mp3Path);
+      readStream.pipe(res);
+      readStream.on("close", () => {
+        // Cleanup after sending
+        fs.unlink(mp3Path, (err) => {
+          if (err) console.error("Cleanup error:", err);
+        });
+      });
+
+      readStream.on("error", (err) => {
+        console.error("Streaming error:", err);
+        res.status(500).send("Failed to stream video");
       });
     });
-
-    readStream.on("error", (err) => {
-      console.error("Streaming error:", err);
-      res.status(500).send("Failed to stream video");
-    });
-  });
+  } catch (error) {
+    console.log("Error💥", error);
+  }
 };
 
 // Thumbnail
