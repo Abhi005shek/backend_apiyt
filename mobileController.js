@@ -71,6 +71,7 @@ exports.downloadMVideo = (req, res) => {
 //
 //
 exports.downloadMAudio = (req, res) => {
+  console.log("/Audio route accessed");
   const videoURL = req.query.url;
   let title = req.query.title || `audio_${uuidv4()}`;
 

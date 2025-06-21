@@ -8,12 +8,9 @@ const {
   downloadAudio,
   downloadThumbnail,
 } = require("./controller");
-const {
-  downloadMVideo,
-  downloadMAudio,
-} = require("./mobileController");
 const cors = require("cors");
 const ratelimit = require("express-rate-limit");
+const { downloadMAudio, downloadMVideo } = require("./mobileController");
 
 config();
 
@@ -45,6 +42,7 @@ app.get("/thumbnail", infoRateLimiter, downloadThumbnail);
 
 app.get("/v2/download", downloadRateLimiter, downloadMVideo);
 app.get("/v2/audio", downloadRateLimiter, downloadMAudio);
+
 app.get("/v2/test", infoRateLimiter, (req, res) => {
   res.send("working");
 });
