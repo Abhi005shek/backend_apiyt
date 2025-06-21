@@ -5,6 +5,14 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const https = require("https");
 
+const ffmpegPath = "/usr/bin/ffmpeg";
+// const ytdlpPath = "/usr/local/bin/yt-dlp";
+const ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
+
+function sanitizeFilename(name) {
+  return name.replace(/[^a-z0-9_\-\.]/gi, "_");
+}
+
 //
 exports.downloadMVideo = (req, res) => {
   console.log("Download route accessed!");
