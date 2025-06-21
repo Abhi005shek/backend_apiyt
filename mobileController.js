@@ -127,51 +127,50 @@ exports.downloadMAudio = (req, res) => {
   }
 };
 
-
 // Thumbnail
-exports.downloadMThumbnail = (req, res) => {
-  const videoURL = req.query.url;
-  if (!videoURL) return res.status(400).send("Missing URL parameter");
+// exports.downloadMThumbnail = (req, res) => {
+//   const videoURL = req.query.url;
+//   if (!videoURL) return res.status(400).send("Missing URL parameter");
 
-  const command = `${ytdlpPath} --cookies ./yt.txt --print "%(thumbnail)s" "${videoURL}"`;
+//   const command = `${ytdlpPath} --cookies ./yt.txt --print "%(thumbnail)s" "${videoURL}"`;
 
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error("yt-dlp error:", error);
-      return res.status(500).send("Failed to get thumbnail");
-    }
+//   exec(command, (error, stdout, stderr) => {
+//     if (error) {
+//       console.error("yt-dlp error:", error);
+//       return res.status(500).send("Failed to get thumbnail");
+//     }
 
-    const thumbnailURL = stdout.trim();
-    const ext =
-      path.extname(new URL(thumbnailURL).pathname).split("?")[0] || ".jpg";
-    const filename = `thumb_${uuidv4()}${ext}`;
-    const filePath = path.join(__dirname, "..", "downloads", filename);
+//     const thumbnailURL = stdout.trim();
+//     const ext =
+//       path.extname(new URL(thumbnailURL).pathname).split("?")[0] || ".jpg";
+//     const filename = `thumb_${uuidv4()}${ext}`;
+//     const filePath = path.join(__dirname, "..", "downloads", filename);
 
-    // ✅ Ensure the directory exists
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+//     // ✅ Ensure the directory exists
+//     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-    const file = fs.createWriteStream(filePath);
+//     const file = fs.createWriteStream(filePath);
 
-    https
-      .get(thumbnailURL, (response) => {
-        if (response.statusCode !== 200) {
-          console.error("Failed to download image:", response.statusCode);
-          return res.status(500).send("Thumbnail fetch failed");
-        }
+//     https
+//       .get(thumbnailURL, (response) => {
+//         if (response.statusCode !== 200) {
+//           console.error("Failed to download image:", response.statusCode);
+//           return res.status(500).send("Thumbnail fetch failed");
+//         }
 
-        response.pipe(file);
+//         response.pipe(file);
 
-        file.on("finish", () => {
-          file.close(() => {
-            res.download(filePath, filename, () => {
-              fs.unlink(filePath, () => {}); // cleanup
-            });
-          });
-        });
-      })
-      .on("error", (err) => {
-        console.error("HTTPS error:", err);
-        res.status(500).send("Thumbnail download error");
-      });
-  });
-};
+//         file.on("finish", () => {
+//           file.close(() => {
+//             res.download(filePath, filename, () => {
+//               fs.unlink(filePath, () => {}); // cleanup
+//             });
+//           });
+//         });
+//       })
+//       .on("error", (err) => {
+//         console.error("HTTPS error:", err);
+//         res.status(500).send("Thumbnail download error");
+//       });
+//   });
+// };

@@ -8,8 +8,12 @@ const {
   downloadAudio,
   downloadThumbnail,
 } = require("./controller");
+const {
+  downloadMVideo,
+  downloadMAudio,
+} = require("./mobileController");
 const cors = require("cors");
-const ratelimit = require("express");
+const ratelimit = require("express-rate-limit");
 
 config();
 
@@ -38,6 +42,12 @@ app.get("/info", infoRateLimiter, info);
 app.get("/download", downloadRateLimiter, downloadVideo);
 app.get("/audio", downloadRateLimiter, downloadAudio);
 app.get("/thumbnail", infoRateLimiter, downloadThumbnail);
+
+app.get("/v2/download", downloadRateLimiter, downloadMVideo);
+app.get("/v2/audio", downloadRateLimiter, downloadMAudio);
+app.get("/v2/test", infoRateLimiter, (req, res) => {
+  res.send("working");
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
