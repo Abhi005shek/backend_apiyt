@@ -35,7 +35,7 @@ const downloadRateLimiter = ratelimit({
 });
 
 app.use(cors());
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 app.get("/info", infoRateLimiter, info);
 app.get("/download", downloadRateLimiter, downloadVideo);
 app.get("/audio", downloadRateLimiter, downloadAudio);
