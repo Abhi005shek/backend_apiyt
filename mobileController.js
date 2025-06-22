@@ -8,6 +8,8 @@ const https = require("https");
 const ffmpegPath = "/usr/bin/ffmpeg";
 // const ytdlpPath = "/usr/local/bin/yt-dlp";
 const ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
+const userAgent = `--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36`
+
 
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9_\-\.]/gi, "_");
@@ -35,7 +37,7 @@ exports.downloadMVideo = (req, res) => {
     const output = path.join(__dirname, "downloads", `${title}.mp4`);
 
     // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
-    const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
+    const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt ${userAgent} -f "${formatId}+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -o "${output}" "${videoURL}"`;
     exec(command, (error, stdout, stderr) => {
       console.log("STDOUT:", stdout);
       console.error("STDERR:", stderr);
@@ -96,7 +98,7 @@ exports.downloadMAudio = (req, res) => {
 
     // Step 2: Run yt-dlp to extract and convert to mp3
     // const command = `yt-dlp --ffmpeg-location "${ffmpegPath}" -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
-    const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
+    const command = `${ytdlpPath} --ffmpeg-location "${ffmpegPath}" --cookies ./yt.txt ${userAgent} -x --audio-format mp3 --embed-thumbnail --add-metadata --metadata-from-title "%(artist)s - %(title)s" -o "${outputPath}" "${videoURL}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) {

@@ -22,6 +22,7 @@ if (!fs.existsSync(downloadDir)) {
 
 const PORT = process.env.PORT || 5000;
 const app = express();
+app.set("trust proxy", 1); // Trust the first proxy
 
 const infoRateLimiter = ratelimit({
   windowMs: 1 * 60 * 1000,

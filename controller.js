@@ -8,6 +8,7 @@ const https = require("https");
 const ffmpegPath = "/usr/bin/ffmpeg";
 // const ytdlpPath = "/usr/local/bin/yt-dlp";
 const ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
+const userAgent = `--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36`
 
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9_\-\.]/gi, "_");
@@ -19,7 +20,7 @@ exports.info = (req, res) => {
 
   //   const command = `yt-dlp -F "${videoURL}" --print-json`;
   // const command = `yt-dlp --dump-json "${videoURL}"`;
-  const command = `${ytdlpPath} --cookies ./yt.txt --dump-json "${videoURL}"`;
+  const command = `${ytdlpPath} --cookies ./yt.txt ${userAgent} --dump-json "${videoURL}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
