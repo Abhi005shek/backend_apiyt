@@ -25,26 +25,25 @@ const app = express();
 app.set("trust proxy", 1); // Trust the first proxy
 
 const infoRateLimiter = ratelimit({
-  windowMs: 1 * 60 * 1000,
+  windowMs: 24 * 60 * 60 * 1000,
   max: 10,
-  message: "Too many request wait for ~1 minute.",
+  message: "Too many requests — try again in 24 hours.",
 });
 const downloadRateLimiter = ratelimit({
-  windowMs: 10 * 60 * 1000,
-  max: 4,
-  message: "Too many download requests. Try again later after ~10 minutes.",
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 2,
+  message: "Too many requests — try again in 24 hours.",
 });
 
 app.use(cors());
-// app.set("trust proxy", true);
 app.get("/info", infoRateLimiter, info);
 app.get("/download", downloadRateLimiter, downloadVideo);
 app.get("/audio", downloadRateLimiter, downloadAudio);
-app.get("/thumbnail", infoRateLimiter, downloadThumbnail);
+app.get("/thumbnail", downloadRateLimiter, downloadThumbnail);
 
 app.get("/v2/download", downloadRateLimiter, downloadMVideo);
 app.get("/v2/audio", downloadRateLimiter, downloadMAudio);
-
+ 
 app.get("/v2/test", infoRateLimiter, (req, res) => {
   res.send("working");
 });
