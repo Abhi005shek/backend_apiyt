@@ -8,7 +8,8 @@ const https = require("https");
 // const ffmpegPath = "/usr/bin/ffmpeg";
 // const ytdlpPath = "/usr/local/bin/yt-dlp";
 // const ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
-const ytdlpPath = "yt-dlp";
+// const ytdlpPath = "yt-dlp";
+const ytdlpPath = path.join(__dirname, "bin", "yt-dlp");
 const userAgent = `--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"`
 
 function sanitizeFilename(name) {
